@@ -78,6 +78,11 @@ struct EditBookView: View {
             }
             Divider()
             LabeledContent {
+                RatingsView(maxRating: 5, currentRating: $rating, width: 30)
+            } label: {
+                Text("Rating")
+            }
+            LabeledContent {
                 TextField("Title", text: $title)
             } label: {
                 Text("Title").foregroundStyle(.secondary)
@@ -140,6 +145,11 @@ struct EditBookView: View {
 }
 
 
-// #Preview {
-//     EditBookView()
-// }
+ #Preview {
+     let preview = Preview(Book.self)
+     let book = Book.sampleBooks[4]
+     NavigationStack {
+         EditBookView(book: book)
+             .modelContainer(preview.container)
+     }
+ }
