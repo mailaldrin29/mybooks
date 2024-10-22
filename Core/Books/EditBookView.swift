@@ -19,6 +19,9 @@ struct EditBookView: View {
     @State private var dateStarted: Date = Date.distantPast
     @State private var dateCompleted: Date = Date.distantPast
     @State private var firstView: Bool = true
+    @State private var recommendedBy = ""
+    @State private var showGenres = false
+    
     var body: some View {
         HStack{
             Text("Status")
@@ -90,7 +93,12 @@ struct EditBookView: View {
             LabeledContent {
                 TextField("Author", text: $author)
             } label: {
-                Text("Title").foregroundStyle(.secondary)
+                Text("Author").foregroundStyle(.secondary)
+            }
+            LabeledContent {
+                TextField("Recommended By", text: $recommendedBy)
+            } label: {
+                Text("Recommended By").foregroundStyle(.secondary)
             }
             Divider()
             Text("Summary").foregroundStyle(.secondary)
@@ -100,6 +108,31 @@ struct EditBookView: View {
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(.gray, lineWidth: 1)
                 )
+            if let genres = book.genres {
+                ViewThatFits {
+                    GenresStackView(genres: genres)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        GenresStackView(genres: genres)
+                    }
+                }
+            }
+            HStack {
+                Button("Genres", systemImage: "bookmark.fill") {
+                    showGenres.toggle()
+                }
+                .sheet(isPresented: $showGenres) {
+                    GenresView(book: book)
+                }
+                NavigationLink {
+                    QuotesListView(book: book)
+                } label: {
+                    let count = book.quotes?.count ?? 0
+                    Label("^[\(count) Quotes](inflect: true)", systemImage: "quote.opening")
+                }
+            }
+            .buttonStyle(.bordered)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding(.horizontal)
         }
         .padding()
         .textFieldStyle(.roundedBorder)
@@ -116,6 +149,7 @@ struct EditBookView: View {
                     book.dateAdded = dateAdded
                     book.dateStarted = dateStarted
                     book.dateCompleted = dateCompleted
+                    book.recommededBy = recommendedBy
                     dismiss()
                 }.buttonStyle(.borderedProminent)
             }
@@ -130,26 +164,29 @@ struct EditBookView: View {
             dateAdded = book.dateAdded
             dateStarted = book.dateStarted
             dateCompleted = book.dateCompleted
+            recommendedBy = book.recommededBy
         }
     }
     
     var changed: Bool {
         return book.status != status.rawValue
+        || book.rating != rating
         || book.title != title
         || book.author != author
         || book.summary != summary
         || book.dateAdded != dateAdded
         || book.dateStarted != dateStarted
         || book.dateCompleted != dateCompleted
+        || book.recommededBy != recommendedBy
     }
 }
 
 
- #Preview {
-     let preview = Preview(Book.self)
-     let book = Book.sampleBooks[4]
-     NavigationStack {
-         EditBookView(book: book)
-             .modelContainer(preview.container)
-     }
- }
+#Preview {
+    let preview = Preview(Book.self)
+    let book = Book.sampleBooks[4]
+    NavigationStack {
+        EditBookView(book: book)
+            .modelContainer(preview.container)
+    }
+}

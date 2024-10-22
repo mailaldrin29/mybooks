@@ -18,15 +18,21 @@ class Book {
     var summary: String
     var rating: Int?
     var status: Status.RawValue
-
+    var recommededBy: String = ""
+    @Relationship(deleteRule: .cascade)
+    var quotes: [Quote]?
+    @Relationship(inverse: \Genre.books)
+    var genres: [Genre]?
+    
     init(title: String,
-    author: String,
-    dateAdded: Date = Date.now,
-    dateStarted: Date = Date.distantPast,
-    dateCompleted: Date = Date.distantPast,
-    summary: String = "",
-    rating: Int? = nil,
-    status: Status = .onShelf) {
+         author: String,
+         dateAdded: Date = Date.now,
+         dateStarted: Date = Date.distantPast,
+         dateCompleted: Date = Date.distantPast,
+         summary: String = "",
+         rating: Int? = nil,
+         status: Status = .onShelf,
+         recommededBy: String = "") {
         self.title = title
         self.author = author
         self.dateAdded = dateAdded
@@ -35,8 +41,10 @@ class Book {
         self.summary = summary
         self.rating = rating
         self.status = status.rawValue
+        self.recommededBy = recommededBy
+        
     }
-
+    
     var icon: Image {
         switch Status(rawValue: status)! {
         case .onShelf: return Image(systemName: "books.vertical.fill")
@@ -50,11 +58,11 @@ enum Status : Int, Codable, Identifiable, CaseIterable {
     case onShelf
     case completed
     case inProgress
-
+    
     var id: Self {
         return self
     }
-
+    
     var descr: String {
         switch self {
         case .onShelf: return "On Shelf"

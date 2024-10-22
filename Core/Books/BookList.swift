@@ -9,10 +9,8 @@ import SwiftUI
 import SwiftData
 
 struct BookList: View {
-    @Environment(\.modelContext) private var modelContext
-    
+    @Environment(\.modelContext) private var context
     @Query private var books: [Book]
-    
     init(sortOrder: SortOrder, filterString: String) {
         let sortDescriptors: [SortDescriptor<Book>] = switch sortOrder {
         case .status:
@@ -27,13 +25,12 @@ struct BookList: View {
             || book.author.localizedStandardContains(filterString)
             || filterString.isEmpty
         }
-        _books = Query(filter: predicate ,sort: sortDescriptors)
+        _books = Query(filter: predicate, sort: sortDescriptors)
     }
-    
     var body: some View {
         Group {
             if books.isEmpty {
-                ContentUnavailableView("Enter your first book", systemImage: "book.fill")
+                ContentUnavailableView("Enter your first book.", systemImage: "book.fill")
             } else {
                 List {
                     ForEach(books) { book in
@@ -43,25 +40,34 @@ struct BookList: View {
                             HStack(spacing: 10) {
                                 book.icon
                                 VStack(alignment: .leading) {
-                                    Text(book.title).font(.title3)
+                                    Text(book.title).font(.title2)
                                     Text(book.author).foregroundStyle(.secondary)
                                     if let rating = book.rating {
                                         HStack {
-                                            ForEach(0..<rating, id: \.self) { _ in
+                                            ForEach(1..<rating, id: \.self) { _ in
                                                 Image(systemName: "star.fill")
                                                     .imageScale(.small)
                                                     .foregroundStyle(.yellow)
                                             }
                                         }
                                     }
+                                    if let genres = book.genres {
+                                        ViewThatFits {
+                                            GenresStackView(genres: genres)
+                                            ScrollView(.horizontal, showsIndicators: false) {
+                                                GenresStackView(genres: genres)
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
+                        
                     }
-                    .onDelete { indexset in
-                        indexset.forEach { index in
+                    .onDelete { indexSet in
+                        indexSet.forEach { index in
                             let book = books[index]
-                            modelContext.delete(book)
+                            context.delete(book)
                         }
                     }
                 }
@@ -75,7 +81,7 @@ struct BookList: View {
     let preview = Preview(Book.self)
     preview.addExamples(Book.sampleBooks)
     return NavigationStack {
-        BookList(sortOrder: SortOrder.status, filterString: "")
+        BookList(sortOrder: .status, filterString: "")
     }
     .modelContainer(preview.container)
 }
